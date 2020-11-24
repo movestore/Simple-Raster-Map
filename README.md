@@ -1,6 +1,3 @@
-# Simple-Raster-Map
-coastline map with raster positions, for large data sets
-
 # Simple Raster Map
 MoveApps
 
