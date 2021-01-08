@@ -13,7 +13,7 @@ shinyModuleUserInterface <- function(id, label, grid = 50000) {
     sliderInput(inputId = ns("grid"), 
                 label = "Choose a raster grid size in m", 
                 value = grid, min = 1000, max = 300000),
-   plotOutput(ns("map"))
+   plotOutput(ns("map"),height="90vh")
   )
 }
 
