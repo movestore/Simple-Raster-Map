@@ -13,7 +13,8 @@ shinyModuleUserInterface <- function(id, label, grid = 50000) {
     sliderInput(inputId = ns("grid"), 
                 label = "Choose a raster grid size in m", 
                 value = grid, min = 1000, max = 300000),
-   plotOutput(ns("map"),height="90vh")
+   plotOutput(ns("map"),height="90vh"),
+   downloadButton(ns('savePlot'), 'Save Plot')
   )
 }
 
@@ -51,6 +52,17 @@ shinyModule <- function(input, output, session, data, grid = 50000) {
     plot(rasterObjT(),colNA=NA,axes=FALSE,asp=1) 
     plot(coast, add = TRUE)
   })
+  
+  ### save map, takes some seconds ###
+  output$savePlot <- downloadHandler(
+    filename = "SimpleRasterPlot.png",
+    content = function(file) {
+      png(file)
+      plot(rasterObjT(),colNA=NA,axes=FALSE,asp=1) 
+      plot(coast, add = TRUE)
+      dev.off()
+    }
+  )
   
   return(reactive({ current() }))
 }
