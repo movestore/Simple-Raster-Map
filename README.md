@@ -19,6 +19,8 @@ moveStack in Movebank format
 ### Artefacts
 none
 
+Pressing the "SavePlot" Button on the UI allows to download the raster map as png file.
+
 ### Parameters 
 `grid`: Integer indicating the grid size for rasterizing your data. Large values give less, large grid cells. Please choose values between 1000 and 300000. This value can also be adapted in the UI. Unit: `m`. Example: 50000.
 
