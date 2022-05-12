@@ -5,7 +5,7 @@ library('rgeos')
 
 #setwd("/root/app/")
 
-shinyModuleUserInterface <- function(id, label, grid = 50000) {
+shinyModuleUserInterface <- function(id, label, grid = 50000, num=0) {
   ns <- NS(id)
   
   tagList(
@@ -13,6 +13,9 @@ shinyModuleUserInterface <- function(id, label, grid = 50000) {
     sliderInput(inputId = ns("grid"), 
                 label = "Choose a raster grid size in m", 
                 value = grid, min = 1000, max = 300000),
+    sliderInput(inputId = ns("num"), 
+                label = "Choose a margin size (unit=degree)", 
+                value = num, min = 0, max = 30, step=0.1),
    plotOutput(ns("map"),height="90vh"),
    downloadButton(ns('savePlot'), 'Save Plot')
   )
@@ -28,29 +31,33 @@ shinyModuleConfiguration <- function(id, input) {
   configuration
 }
 
-shinyModule <- function(input, output, session, data, grid = 50000) {
+shinyModule <- function(input, output, session, data, grid = 50000, num=0) {
   current <- reactiveVal(data)
   
   SP <- SpatialPoints(data,proj4string=CRS("+proj=longlat +ellps=WGS84 +no_defs"))
-  SPT <- spTransform(SP,CRSobj="+proj=aeqd +lat_0=53 +lon_0=24 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs")
+  mid <- colMeans(coordinates(SP))
+  SPT <- spTransform(SP,CRSobj=paste0("+proj=aeqd +lat_0=",mid[2]," +lon_0=",mid[1]," +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"))
   
   outputRaster <- reactive({
-    raster(ext=extent(SPT), resolution=input$grid, crs = "+proj=aeqd +lat_0=53 +lon_0=24 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs", vals=NULL)
+    raster(ext=extent(SPT), resolution=input$grid, crs = paste0("+proj=aeqd +lat_0=",mid[2]," +lon_0=",mid[1]," +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"), vals=NULL)
   })
   
   rasterObjT <- reactive({
       rasterize(SPT,outputRaster(),fun="count",update=TRUE)
   })  
 
-
+  edg <- 0
   coastlines <- readOGR("ne-coastlines-10m/ne_10m_coastline.shp")
-  coastlinesC <- crop(coastlines,extent(SP))
-  coast <- spTransform(coastlinesC,CRSobj="+proj=aeqd +lat_0=53 +lon_0=24 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs")
-
+  while(length(gIntersection(coastlines,as(extent(SP)+c(-edg,edg,-edg,edg),'SpatialPolygons'),byid=FALSE))==0) edg <- edg+0.5
   
+  coast <- reactive({
+    coastlinesC <- crop(coastlines,extent(SP)+c(-input$num,input$num,-input$num,input$num)+c(-edg,edg,-edg,edg)) ##without extra edge this does not work if far from coast - need to add edge until any coast
+    spTransform(coastlinesC,CRSobj=paste0("+proj=aeqd +lat_0=",mid[2]," +lon_0=",mid[1]," +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"))
+  })
+
   output$map <- renderPlot({
-    plot(rasterObjT(),colNA=NA,axes=FALSE,asp=1) 
-    plot(coast, add = TRUE)
+    plot(coast(),axes=FALSE)
+    plot(rasterObjT(),colNA=NA,axes=FALSE,asp=1,add=TRUE)
   })
   
   ### save map, takes some seconds ###
@@ -58,8 +65,8 @@ shinyModule <- function(input, output, session, data, grid = 50000) {
     filename = "SimpleRasterPlot.png",
     content = function(file) {
       png(file)
-      plot(rasterObjT(),colNA=NA,axes=FALSE,asp=1) 
-      plot(coast, add = TRUE)
+      plot(coast(),axes=FALSE)
+      plot(rasterObjT(),colNA=NA,asp=1, add = TRUE) 
       dev.off()
     }
   )
