@@ -47,7 +47,7 @@ shinyModule <- function(input, output, session, data, grid = 50000, num=0) {
   })  
 
   edg <- 0
-  coastlines <- readOGR("ne-coastlines-10m/ne_10m_coastline.shp")
+  coastlines <- readOGR(paste0(getAppFilePath(coastlines),"/ne_10m_coastline.shp"))
   while(length(gIntersection(coastlines,as(extent(SP)+c(-edg,edg,-edg,edg),'SpatialPolygons'),byid=FALSE))==0) edg <- edg+0.5
   
   coast <- reactive({
