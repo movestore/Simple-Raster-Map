@@ -2,7 +2,7 @@ library(jsonlite)
 source("logger.R")
 source("ShinyModule.R")
 
-inputFileName = "input_lowres_geese_74X.rds"
+inputFileName = "App-Output Workflow_Instance_001__KML_Map_Output__2022-05-10_10-55-43.rds"
 outputFileName = "output.rds"
 
 if(file.exists("configuration.json")) {
@@ -23,6 +23,7 @@ if(file.exists("configuration.json")) {
 
 # Add your arguments of your r function here
 args[["grid"]] <- 500000
+args[["num"]] <- 2
 
 #################################################################
 #################################################################
