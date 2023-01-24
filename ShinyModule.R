@@ -13,9 +13,9 @@ shinyModuleUserInterface <- function(id, label) {
     sliderInput(inputId = ns("grid"), 
                 label = "Choose a raster grid size in m", 
                 value = 50000, min = 1000, max = 300000),
-    sliderInput(inputId = ns("num"), 
-                label = "Choose a margin size (unit=degree)", 
-                value = 0, min = 0, max = 30, step=0.1),
+    # sliderInput(inputId = ns("num"), 
+    #             label = "Choose a margin size (unit=degree)", 
+    #             value = 0, min = 0, max = 30, step=0.1),
    plotOutput(ns("map"),height="90vh"),
    downloadButton(ns('savePlot'), 'Save Plot')
   )
@@ -48,7 +48,7 @@ shinyModule <- function(input, output, session, data) {
 
   output$map <- renderPlot({
     #plot(coast(),axes=FALSE)
-    plot(rasterObjT(),colNA=NA,axes=FALSE,asp=1,add=TRUE)
+    plot(rasterObjT(),colNA=NA,axes=FALSE,asp=1)#,add=TRUE)
   })
   
   ### save map, takes some seconds ###
@@ -57,7 +57,7 @@ shinyModule <- function(input, output, session, data) {
     content = function(file) {
       png(file)
       #plot(coast(),axes=FALSE)
-      plot(rasterObjT(),colNA=NA,asp=1, add = TRUE) 
+      plot(rasterObjT(),colNA=NA,asp=1)#, add = TRUE) 
       dev.off()
     }
   )
