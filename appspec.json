@@ -1,20 +1,5 @@
 {
-  "settings": [
-    {
-      "id": "grid",
-      "name": "Grid size for raster output",
-      "description": "Specify a grid size (number of cells per each axis) for the raster. Start with larger values to test run time.",
-      "defaultValue": 50000,
-      "type": "INTEGER"
-    },
-	    {
-      "id": "num",
-      "name": "Margin size for visibility of coastlines",
-      "description": "Specify how much you want to zoom out of your dataset for visibility of coastliens. Values are in degrees and will be added on all four sides of the map. Keep within range of 0 - 30 degrees. Default 0. (Note that automatic margins will be inserted if data is far from any coast.)",
-      "defaultValue": 0,
-      "type": "DOUBLE"
-    },
-  ],
+  "settings": [],
   "providedAppFiles": [
     {
       "settingId": "coastlines",
