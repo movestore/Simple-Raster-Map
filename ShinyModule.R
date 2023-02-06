@@ -37,17 +37,17 @@ shinyModule <- function(input, output, session, data) {
       rasterize(SPT,outputRaster(),fun="count",update=TRUE)
   })  
 
-  #edg <- 0
-  #coastlines <- readOGR(paste0(getAppFilePath("coastlines"),"/ne_10m_coastline.shp"))
-  #while(length(gIntersection(coastlines,as(extent(SP)+c(-edg,edg,-edg,edg),'SpatialPolygons'),byid=FALSE))==0) edg <- edg+0.5
+  edg <- 0
+  coastlines <- readOGR(paste0(getAppFilePath("coastlines"),"ne_10m_coastline"))
+  while(length(gIntersection(coastlines,as(extent(SP)+c(-edg,edg,-edg,edg),'SpatialPolygons'),byid=FALSE))==0) edg <- edg+0.5
   
-  #coast <- reactive({
-  #  coastlinesC <- crop(coastlines,extent(SP)+c(-input$num,input$num,-input$num,input$num)+c(-edg,edg,-edg,edg)) ##without extra edge this does not work if far from coast - need to add edge until any coast
-  #  spTransform(coastlinesC,CRSobj=paste0("+proj=aeqd +lat_0=",mid[2]," +lon_0=",mid[1]," +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"))
-  #})
+  coast <- reactive({
+    coastlinesC <- crop(coastlines,extent(SP)+c(-input$num,input$num,-input$num,input$num)+c(-edg,edg,-edg,edg)) ##without extra edge this does not work if far from coast - need to add edge until any coast
+    spTransform(coastlinesC,CRSobj=paste0("+proj=aeqd +lat_0=",mid[2]," +lon_0=",mid[1]," +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"))
+  })
 
   output$map <- renderPlot({
-    #plot(coast(),axes=FALSE)
+    plot(coast(),axes=FALSE)
     plot(rasterObjT(),colNA=NA,axes=FALSE,asp=1,add=TRUE)
   })
   
@@ -56,7 +56,7 @@ shinyModule <- function(input, output, session, data) {
     filename = "SimpleRasterPlot.png",
     content = function(file) {
       png(file)
-      #plot(coast(),axes=FALSE)
+      plot(coast(),axes=FALSE)
       plot(rasterObjT(),colNA=NA,asp=1, add = TRUE) 
       dev.off()
     }
