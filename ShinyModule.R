@@ -2,7 +2,7 @@ library('move')
 library('shiny')
 library('raster')
 library('rgeos')
-
+library("shinycssloaders")
 
 #setwd("/root/app/")
 
@@ -19,7 +19,7 @@ shinyModuleUserInterface <- function(id, label) {
                 label = "Choose a margin size in degrees",
                 value = 0, min = 0, max = 30, step=0.1))
       ),
-   plotOutput(ns("map"),height="75vh"),
+    withSpinner(plotOutput(ns("map"),height="75vh")),
    downloadButton(ns('savePlot'), 'Save Plot')
   )
 }
@@ -42,7 +42,7 @@ shinyModule <- function(input, output, session, data) {
 
   edg <- 0
 
-  coastlines <- readOGR(dsn=getAppFilePath("coastlines"),layer="ne_10m_coastline")
+  coastlines <- readOGR(dsn=getAppFilePath("ne-coastlines-10m/"),layer="ne_10m_coastline")
   while(length(gIntersection(coastlines,as(extent(SP)+c(-edg,edg,-edg,edg),'SpatialPolygons'),byid=FALSE))==0) edg <- edg+0.5
 
   coast <- reactive({
