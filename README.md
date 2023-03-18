@@ -1,4 +1,4 @@
-# Simple Raster Map
+# Raster Map
 MoveApps
 
 Github repository: *github.com/movestore/Simple-Raster-Map*
@@ -23,15 +23,15 @@ none
 
 Pressing the "SavePlot" Button on the UI allows to download the raster map as png file.
 
-### Parameters 
+### Settings 
 `Choose a raster grid size in m`: Integer indicating the grid size for rasterizing your data. Large values give less, large grid cells. Please choose values between 1000 and 300000. This value can also be adapted in the UI. Unit: `m`. Default: 50000.
 
 `Choose a margin size in degrees`: Margin size for better visibility of coastlines. Unit: degrees. Default 0.
 
 ### Null or error handling:
-**Parameter `Choose a raster grid size in m`:** This parameter has a default of 50000. If you provide a value outside of the provided range (1000 - 300000) the parameter will be mapped to the respective range edge (1000 if value too small, 300000 if value too large).
+**Setting `Choose a raster grid size in m`:** This parameter has a default of 50000. If you provide a value outside of the provided range (1000 - 300000) the parameter will be mapped to the respective range edge (1000 if value too small, 300000 if value too large).
 
-**Parameter `Choose a margin size in degrees`:** Only positive values allowed. Best in range of 0 - 30 degrees.
+**Setting `Choose a margin size in degrees`:** Only positive values allowed. Best in range of 0 - 30 degrees.
 
 **Data:** This App is not reducing the data in any form, so no empty tracks can occur. The output data set should have the same dimensions as the input.
 
