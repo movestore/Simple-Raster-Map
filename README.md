@@ -24,6 +24,7 @@ none
 Pressing the "SavePlot" Button on the UI allows to download the raster map as png file.
 
 ### Settings 
+
 `Choose a raster grid size in m`: Integer indicating the grid size for rasterizing your data. Large values give less, large grid cells. Please choose values between 1000 and 300000. This value can also be adapted in the UI. Unit: `m`. Default: 50000.
 
 `Choose a margin size in degrees`: Margin size for better visibility of coastlines. Unit: degrees. Default 0.
