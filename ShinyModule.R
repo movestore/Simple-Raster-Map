@@ -1,70 +1,91 @@
-library('move')
+library('move2')
 library('shiny')
-library('raster')
-library('rgeos')
+library(sf)
+library(terra)
+library(dplyr)
+library(leaflet)
 library("shinycssloaders")
+library(htmlwidgets)
 
-#setwd("/root/app/")
 
 shinyModuleUserInterface <- function(id, label) {
   ns <- NS(id)
   
   tagList(
-    titlePanel("Raster map of location density"),
+    titlePanel("Map of rasterized tracks"),
     fluidRow(
       column(3, sliderInput(inputId = ns("grid"), 
-                label = "Choose a raster grid size in m", 
-                value = 50000, min = 1000, max = 300000)),
-      column(3,sliderInput(inputId = ns("num"),
-                label = "Choose a margin size in degrees",
-                value = 0, min = 0, max = 30, step=0.1))
-      ),
-    withSpinner(plotOutput(ns("map"),height="75vh")),
-   downloadButton(ns('savePlot'), 'Save Plot')
+                            label = "Choose a raster grid size in Km", 
+                            value = 50, min = 1, max = 300)),
+      column(3, radioButtons(inputId = ns("rast_typ"), 
+                            label = "Choose what to rasterize", 
+                            c("Locations" = "locs",
+                              "Tracks" = "tracks"),
+                            selected="tracks")),
+      column(2,downloadButton(ns("save_html"),"Download as HTML", class = "btn-sm"))
+    ),
+    
+    withSpinner(leafletOutput(ns("map"),height="85vh"))
   )
 }
 
 
 shinyModule <- function(input, output, session, data) {
   current <- reactiveVal(data)
-  
-  SP <- SpatialPoints(data,proj4string=CRS("+proj=longlat +ellps=WGS84 +no_defs"))
-  mid <- colMeans(coordinates(SP))
-  SPT <- spTransform(SP,CRSobj=paste0("+proj=aeqd +lat_0=",mid[2]," +lon_0=",mid[1]," +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"))
-  
-  outputRaster <- reactive({
-    raster(ext=extent(SPT), resolution=input$grid, crs = paste0("+proj=aeqd +lat_0=",mid[2]," +lon_0=",mid[1]," +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"), vals=NULL)
-  })
-  
-  rasterObjT <- reactive({
-      rasterize(SPT,outputRaster(),fun="count",update=TRUE)
-  })  
-
-  edg <- 0
-
-  coastlines <- readOGR(dsn=getAppFilePath("ne-coastlines-10m/"),layer="ne_10m_coastline")
-  while(length(gIntersection(coastlines,as(extent(SP)+c(-edg,edg,-edg,edg),'SpatialPolygons'),byid=FALSE))==0) edg <- edg+0.5
-
-  coast <- reactive({
-    coastlinesC <- crop(coastlines,extent(SP)+c(-input$num,input$num,-input$num,input$num)+c(-edg,edg,-edg,edg)) ##without extra edge this does not work if far from coast - need to add edge until any coast
-    spTransform(coastlinesC,CRSobj=paste0("+proj=aeqd +lat_0=",mid[2]," +lon_0=",mid[1]," +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs"))
-  })
-
-  output$map <- renderPlot({
-    plot(coast(),axes=FALSE)
-    plot(rasterObjT(),colNA=NA,axes=FALSE,asp=1,add=TRUE)
-  })
-  
-  ### save map, takes some seconds ###
-  output$savePlot <- downloadHandler(
-    filename = "SimpleRasterPlot.png",
-    content = function(file) {
-      png(file)
-      plot(coast(),axes=FALSE)
-      plot(rasterObjT(),colNA=NA,asp=1, add = TRUE)
-      dev.off()
+ 
+  raster_image <- reactive({
+    aeqd_crs <- "ESRI:54032"
+    data_aeqd <- st_transform(data,aeqd_crs)
+    outputRaster <- rast(extent = st_bbox(data_aeqd),resolution =input$grid*1000 , crs = aeqd_crs) 
+ 
+     ### rasterize tracks
+    if(input$rast_typ=="tracks"){
+    line_geoms <- mt_segments(data_aeqd)
+    lines_sf_aeqd <- st_sf(ID = mt_track_id(data_aeqd), geometry = line_geoms)
+    lines_sf_aeqd <- lines_sf_aeqd[st_geometry_type(lines_sf_aeqd) == "LINESTRING", ] # removing the last point!
+    
+    id_list <- unique(lines_sf_aeqd$ID)
+    raster_list <- lapply(id_list, function(id_val) {
+      line <- lines_sf_aeqd %>% dplyr::filter(ID == id_val)
+      seg_rast <- rasterize(vect(line), outputRaster, touches = TRUE)
+      values(seg_rast)[is.na(values(seg_rast))] <- 0
+      return(seg_rast)
+    })
+    seg_rast_sum <- Reduce(`+`, raster_list)
+    values(seg_rast_sum)[values(seg_rast_sum) == 0] <- NA
+    seg_rast_sum
+    
+  ### rasterize locs
+    } else if(input$rast_typ=="locs"){
+    pts_sf_aeqd <- st_coordinates(data_aeqd)
+    pnt_rast <- rasterize(vect(pts_sf_aeqd), outputRaster, fun="count")
+    values(pnt_rast)[values(pnt_rast) == 0] <- NA
+    pnt_rast
     }
-  )
+  })
+  
+  ## plot on map
+  mmap <- reactive({
+    if (input$rast_typ == 'tracks') {
+      pal <- colorFactor('Spectral', na.color = 'transparent', domain = unique(na.omit(values(raster_image()))))
+      legend_title <- 'number of tracks'
+    } else if (input$rast_typ == 'locs') {
+      pal <- colorNumeric('plasma', values(raster_image()), na.color = 'transparent')
+      legend_title <- 'number of locations'
+    }
+    leaflet() %>%
+      addTiles() %>%
+      addRasterImage(raster_image(), opacity = 0.8, colors = pal) %>%
+      addLegend(pal = pal, values = values(raster_image()), title = legend_title)
+  })
+  
+  output$map <- renderLeaflet({mmap()})
+  
+  ## download as html
+  output$save_html <- downloadHandler(
+    filename = paste0("Rasterized_",input$rast_typ,"_at_",input$grid,"Km.html"),
+    content = function(file) {
+      saveWidget(widget = mmap(),file=file) })
   
   return(reactive({ current() }))
 }
