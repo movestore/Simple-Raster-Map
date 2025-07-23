@@ -44,16 +44,23 @@ shinyModule <- function(input, output, session, data) {
     lines_sf_aeqd <- st_sf(ID = mt_track_id(data_aeqd), geometry = line_geoms)
     lines_sf_aeqd <- lines_sf_aeqd[st_geometry_type(lines_sf_aeqd) == "LINESTRING", ] # removing the last point!
     
-    id_list <- unique(lines_sf_aeqd$ID)
-    raster_list <- lapply(id_list, function(id_val) {
-      line <- lines_sf_aeqd %>% dplyr::filter(ID == id_val)
-      seg_rast <- rasterize(vect(line), outputRaster, touches = TRUE)
-      values(seg_rast)[is.na(values(seg_rast))] <- 0
-      return(seg_rast)
-    })
-    seg_rast_sum <- Reduce(`+`, raster_list)
-    values(seg_rast_sum)[values(seg_rast_sum) == 0] <- NA
-    seg_rast_sum
+    seg_rast <- rasterize(vect(lines_sf_aeqd),
+                          outputRaster,
+                          touches = TRUE,
+                          field = NULL,
+                          fun = "sum")
+    seg_rast[seg_rast == 0] <- NA
+    
+    # id_list <- unique(lines_sf_aeqd$ID)
+    # raster_list <- lapply(id_list, function(id_val) {
+    #   line <- lines_sf_aeqd %>% dplyr::filter(ID == id_val)
+    #   seg_rast <- rasterize(vect(line), outputRaster, touches = TRUE)
+    #   values(seg_rast)[is.na(values(seg_rast))] <- 0
+    #   return(seg_rast)
+    # })
+    # seg_rast_sum <- Reduce(`+`, raster_list)
+    # values(seg_rast_sum)[values(seg_rast_sum) == 0] <- NA
+    # seg_rast_sum
     
   ### rasterize locs
     } else if(input$rast_typ=="locs"){

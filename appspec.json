@@ -1,12 +1,6 @@
 {
     "version": "1.2",
   "settings": [],
-  "providedAppFiles": [
-    {
-      "settingId": "ne-coastlines-10m",
-      "from": "provided-app-files/ne-coastlines-10m"
-    }
-  ],
   "dependencies": {
     "R": [
       {"name": "move2"},
