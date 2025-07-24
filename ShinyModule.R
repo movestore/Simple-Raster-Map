@@ -8,6 +8,8 @@ library("shinycssloaders")
 library(htmlwidgets)
 
 
+# data <- readRDS("./data/raw/input4_move2loc_LatLon.rds")
+
 shinyModuleUserInterface <- function(id, label) {
   ns <- NS(id)
   
@@ -36,31 +38,22 @@ shinyModule <- function(input, output, session, data) {
   raster_image <- reactive({
     aeqd_crs <- "ESRI:54032"
     data_aeqd <- st_transform(data,aeqd_crs)
-    outputRaster <- rast(extent = st_bbox(data_aeqd),resolution =input$grid*1000 , crs = aeqd_crs) 
+    outputRaster <- rast(extent = st_bbox(data_aeqd),resolution = input$grid*1000, crs = aeqd_crs) #
  
      ### rasterize tracks
     if(input$rast_typ=="tracks"){
-    line_geoms <- mt_segments(data_aeqd)
-    lines_sf_aeqd <- st_sf(ID = mt_track_id(data_aeqd), geometry = line_geoms)
-    lines_sf_aeqd <- lines_sf_aeqd[st_geometry_type(lines_sf_aeqd) == "LINESTRING", ] # removing the last point!
-    
-    seg_rast <- rasterize(vect(lines_sf_aeqd),
-                          outputRaster,
-                          touches = TRUE,
-                          field = NULL,
-                          fun = "sum")
-    seg_rast[seg_rast == 0] <- NA
-    
-    # id_list <- unique(lines_sf_aeqd$ID)
-    # raster_list <- lapply(id_list, function(id_val) {
-    #   line <- lines_sf_aeqd %>% dplyr::filter(ID == id_val)
-    #   seg_rast <- rasterize(vect(line), outputRaster, touches = TRUE)
-    #   values(seg_rast)[is.na(values(seg_rast))] <- 0
-    #   return(seg_rast)
-    # })
-    # seg_rast_sum <- Reduce(`+`, raster_list)
-    # values(seg_rast_sum)[values(seg_rast_sum) == 0] <- NA
-    # seg_rast_sum
+    line_geoms <- mt_track_lines(data_aeqd)
+    lines_sf_aeqd <- vect(line_geoms[,mt_track_id_column(data_aeqd)])
+
+    lines_sf_aeqd$id <- 1:length(lines_sf_aeqd)
+    raster_list <- lapply(1:length(lines_sf_aeqd), function(i) {
+      rr <- rasterize(lines_sf_aeqd[i, ], outputRaster, field=1, touches = TRUE,background=0)
+      rr
+    })
+    raster_stack <- rast(raster_list)
+    seg_rast_sum <- app(raster_stack, sum)
+    seg_rast_sum[seg_rast_sum == 0] <- NA
+    seg_rast_sum
     
   ### rasterize locs
     } else if(input$rast_typ=="locs"){
@@ -72,12 +65,14 @@ shinyModule <- function(input, output, session, data) {
   })
   
   ## plot on map
+
   mmap <- reactive({
     if (input$rast_typ == 'tracks') {
-      pal <- colorFactor('Spectral', na.color = 'transparent', domain = unique(na.omit(values(raster_image()))))
+      # pal <- colorFactor('Spectral', na.color = 'transparent', domain = unique(na.omit(values(raster_image()))))
+      pal <- colorNumeric('Spectral', values(raster_image()), na.color = 'transparent')
       legend_title <- 'number of tracks'
     } else if (input$rast_typ == 'locs') {
-      pal <- colorNumeric('plasma', values(raster_image()), na.color = 'transparent')
+      pal <- colorNumeric('Spectral', values(raster_image()), na.color = 'transparent')
       legend_title <- 'number of locations'
     }
     leaflet() %>%
