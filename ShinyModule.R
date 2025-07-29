@@ -38,7 +38,7 @@ shinyModule <- function(input, output, session, data) {
   current <- reactiveVal(data)
  
   raster_image <- reactive({
-    aeqd_crs <- "ESRI:54032"
+    aeqd_crs <- "EPSG:3857" 
     data_aeqd <- st_transform(data,aeqd_crs)
     outputRaster <- rast(extent = st_bbox(data_aeqd),resolution = input$grid*1000, crs = aeqd_crs) #
  
@@ -68,29 +68,23 @@ shinyModule <- function(input, output, session, data) {
   
   ## plot on map
   mmap <- reactive({
-    raster_ll <- project(raster_image(), "EPSG:4326")
     if (input$rast_typ == 'tracks') {
       # pal <- colorFactor('Spectral', na.color = 'transparent', domain = unique(na.omit(values(raster_image()))))
-      pal <- colorNumeric('Spectral', values(raster_ll), na.color = 'transparent')
+      pal <- colorNumeric('Spectral', values(raster_image()), na.color = 'transparent')
       legend_title <- 'number of tracks'
     } else if (input$rast_typ == 'locs') {
-      pal <- colorNumeric('Spectral', values(raster_ll), na.color = 'transparent')
+      pal <- colorNumeric('Spectral', values(raster_image()), na.color = 'transparent')
       legend_title <- 'number of locations'
     }
     leaflet() %>%
       addTiles() %>%
-      addRasterImage(raster_ll, opacity = 0.8, colors = pal) %>%
-      addLegend(pal = pal, values = values(raster_ll), title = legend_title)
+      addRasterImage(raster_image(), opacity = 0.8, colors = pal) %>%
+      addLegend(pal = pal, values = values(raster_image()), title = legend_title)
   })
   
   output$map <- renderLeaflet({mmap()})
   
   ## download as html
-  # output$save_html <- downloadHandler(
-  #   filename = paste0("Rasterized_",input$rast_typ,"_at_",input$grid,"Km.html"),
-  #   content = function(file) {
-  #     saveWidget(widget = mmap(),file=file) })
-  
   output$save_html <- downloadHandler(
     filename = function() {
       paste0("Rasterized_", input$rast_typ, "_at_", input$grid, "Km.html")

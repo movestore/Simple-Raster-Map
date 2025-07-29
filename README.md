@@ -8,7 +8,7 @@ Github repository: https://github.com/movestore/Simple-Raster-Map.git
 This App maps the tracks as rasters on an interactive background map. The grid size is user defines and each grid cell can either contain the total number of locations, or the total number of tracks. It is the fastest option to plot large data sets (>100,000 locations).
 
 ## Documentation
-The tracks are rasterized on a template raster with the chosen grid size in `aeqd`(area equal distance) projection. The resulting raster is than reporjected into degrees to match the projection of the underlying background map.
+The tracks are rasterized on a template raster with the chosen grid size in a Pseudo-Mercator projection (EPSG:3857) to match the projection of the underlying background map.
 There are two options, to rasterize the locations, where all locations (of all tracks) that fall within each raster cell are counted, and to rasterize the tracks, where the locations are converted into a line (using the function `move2::mt_track_lines`) and the number of tracks that cross each raster cell are counted.
 
 ### Application scope
