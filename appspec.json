@@ -10,7 +10,8 @@
       {"name": "dplyr"},
       {"name": "leaflet"},
       {"name": "shinycssloaders"},
-      {"name": "htmlwidgets"}
+      {"name": "htmlwidgets"},
+      {"name": "shinyBS"}
     ]
   },
   "license": {

@@ -1,38 +1,45 @@
-# Raster Map
+# Rasterized Tracks Or Locations
+
 MoveApps
 
-Github repository: *github.com/movestore/Simple-Raster-Map*
+Github repository: *github.com/yourAccount/Name-of-App* *(provide the link to the repository where the code of the App can be found)*
 
 ## Description
-Maps raster of all location points with coastlines background. Fastest option to plot large data sets (>100,000 locations). Start with large grid values to test performance. 
+This App maps the tracks as rasters on an interactive background map. The grid size is user defines and each grid cell can either contain the total number of locations, or the total number of tracks. It is the fastest option to plot large data sets (>100,000 locations).
 
 ## Documentation
-This App transforms all Movement data locations to a set of location points in an area equal distance projection. Those are then merged into a raster of given grid size and plotted. For orientation coastlines are added. For further analyses the input data set is also returned.
+The tracks are rasterized on a template raster with the chosen grid size in `aeqd`(area equal distance) projection. The resulting raster is than reporjected into degrees to match the projection of the underlying background map.
+There are two options, to rasterize the locations, where all locations (of all tracks) that fall within each raster cell are counted, and to rasterize the tracks, where the locations are converted into a line (using the function `move2::mt_track_lines`) and the number of tracks that cross each raster cell are counted.
 
-Two sliders are provided to (1) adjust the grid size of the raster and (2) adapt the margin size for better visibility of the coastlines. If the whole data set lies far from any coast, margins are automatically added.
+### Application scope
+#### Generality of App usability
+This App was developed for any taxonomic group. Specially useful for large datasets.
 
-### Input data
-moveStack in Movebank format
+#### Required data properties
 
-### Output data
-Shiny user interface (UI)
-moveStack in Movebank format
+The App should work for any kind of (location) data.
+
+### Input type
+`move2::move2_loc`
+
+### Output type
+`move2::move2_loc`
 
 ### Artefacts
-none
-
-Pressing the "SavePlot" Button on the UI allows to download the raster map as png file.
 
 ### Settings 
+`Choose a raster grid size in Km`: Integer indicating the grid size for rasterizing your data. Large values give less but larger grid cells. Unit: `km`. Default: 50.
 
-`Choose a raster grid size in m`: Integer indicating the grid size for rasterizing your data. Large values give less, large grid cells. Please choose values between 1000 and 300000. This value can also be adapted in the UI. Unit: `m`. Default: 50000.
+`Choose what to rasterize`: `Locations`: the total number of total (across all tracks) that fall within a pixel are counted. `Tracks`: the number of tracks (locations joint by a line) that cross each pixel are counted. Default: `Tracks`
 
-`Choose a margin size in degrees`: Margin size for better visibility of coastlines. Unit: degrees. Default 0.
+`Download as HTML`: the map with the chosen setting can be downloaded as a `.html` file
 
-### Null or error handling:
-**Setting `Choose a raster grid size in m`:** This parameter has a default of 50000. If you provide a value outside of the provided range (1000 - 300000) the parameter will be mapped to the respective range edge (1000 if value too small, 300000 if value too large).
+`Store settings`: click to store the current settings of the App for future Workflow runs. 
 
-**Setting `Choose a margin size in degrees`:** Only positive values allowed. Best in range of 0 - 30 degrees.
+### Changes in output data
 
-**Data:** This App is not reducing the data in any form, so no empty tracks can occur. The output data set should have the same dimensions as the input.
+The input data remains unchanged.
 
+### Most common errors
+
+### Null or error handling

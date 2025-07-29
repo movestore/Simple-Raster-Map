@@ -6,6 +6,7 @@ library(dplyr)
 library(leaflet)
 library("shinycssloaders")
 library(htmlwidgets)
+library(shinyBS)
 
 
 # data <- readRDS("./data/raw/input4_move2loc_LatLon.rds")
@@ -23,7 +24,8 @@ shinyModuleUserInterface <- function(id, label) {
                             label = "Choose what to rasterize", 
                             c("Locations" = "locs",
                               "Tracks" = "tracks"),
-                            selected="tracks")),
+                            selected="tracks"),
+             bsTooltip(id=ns("rast_typ"), title="'Locations': the total number of total (across all tracks) that fall within a pixel are counted. 'Tracks': the number of tracks (locations joint by a line) that cross each pixel are counted", placement = "bottom", trigger = "hover")), #, options = list(container = "body")
       column(2,downloadButton(ns("save_html"),"Download as HTML", class = "btn-sm"))
     ),
     
@@ -65,20 +67,20 @@ shinyModule <- function(input, output, session, data) {
   })
   
   ## plot on map
-
   mmap <- reactive({
+    raster_ll <- project(raster_image(), "EPSG:4326")
     if (input$rast_typ == 'tracks') {
       # pal <- colorFactor('Spectral', na.color = 'transparent', domain = unique(na.omit(values(raster_image()))))
-      pal <- colorNumeric('Spectral', values(raster_image()), na.color = 'transparent')
+      pal <- colorNumeric('Spectral', values(raster_ll), na.color = 'transparent')
       legend_title <- 'number of tracks'
     } else if (input$rast_typ == 'locs') {
-      pal <- colorNumeric('Spectral', values(raster_image()), na.color = 'transparent')
+      pal <- colorNumeric('Spectral', values(raster_ll), na.color = 'transparent')
       legend_title <- 'number of locations'
     }
     leaflet() %>%
       addTiles() %>%
-      addRasterImage(raster_image(), opacity = 0.8, colors = pal) %>%
-      addLegend(pal = pal, values = values(raster_image()), title = legend_title)
+      addRasterImage(raster_ll, opacity = 0.8, colors = pal) %>%
+      addLegend(pal = pal, values = values(raster_ll), title = legend_title)
   })
   
   output$map <- renderLeaflet({mmap()})
