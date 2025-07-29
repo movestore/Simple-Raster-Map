@@ -86,10 +86,19 @@ shinyModule <- function(input, output, session, data) {
   output$map <- renderLeaflet({mmap()})
   
   ## download as html
+  # output$save_html <- downloadHandler(
+  #   filename = paste0("Rasterized_",input$rast_typ,"_at_",input$grid,"Km.html"),
+  #   content = function(file) {
+  #     saveWidget(widget = mmap(),file=file) })
+  
   output$save_html <- downloadHandler(
-    filename = paste0("Rasterized_",input$rast_typ,"_at_",input$grid,"Km.html"),
+    filename = function() {
+      paste0("Rasterized_", input$rast_typ, "_at_", input$grid, "Km.html")
+    },
     content = function(file) {
-      saveWidget(widget = mmap(),file=file) })
+      saveWidget(widget = mmap(), file = file)
+    }
+  )
   
   return(reactive({ current() }))
 }

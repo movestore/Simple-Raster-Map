@@ -2,7 +2,7 @@
 
 MoveApps
 
-Github repository: *github.com/yourAccount/Name-of-App* *(provide the link to the repository where the code of the App can be found)*
+Github repository: https://github.com/movestore/Simple-Raster-Map.git
 
 ## Description
 This App maps the tracks as rasters on an interactive background map. The grid size is user defines and each grid cell can either contain the total number of locations, or the total number of tracks. It is the fastest option to plot large data sets (>100,000 locations).
