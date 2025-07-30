@@ -8,7 +8,7 @@ library("shinycssloaders")
 library(htmlwidgets)
 library(shinyBS)
 
-
+### have a look at " Interactive Density Map" App to make map nicer and with more options
 # data <- readRDS("./data/raw/input4_move2loc_LatLon.rds")
 
 shinyModuleUserInterface <- function(id, label) {

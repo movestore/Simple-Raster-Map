@@ -28,7 +28,7 @@ The App should work for any kind of (location) data.
 ### Artefacts
 
 ### Settings 
-`Choose a raster grid size in Km`: Integer indicating the grid size for rasterizing your data. Large values give less but larger grid cells. Unit: `km`. Default: 50.
+`Choose a raster grid size in Km`: desired resolution (pixel size) of the grid used for rasterizing your data. Large values give less but larger grid cells. Range 1-300 km. Unit: `km`. Default: 50.
 
 `Choose what to rasterize`: `Locations`: the total number of total (across all tracks) that fall within a pixel are counted. `Tracks`: the number of tracks (locations joint by a line) that cross each pixel are counted. Default: `Tracks`
 
